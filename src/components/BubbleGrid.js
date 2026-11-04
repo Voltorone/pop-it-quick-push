@@ -1,14 +1,12 @@
 import React from 'react';
-import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
+import { View, TouchableOpacity, StyleSheet } from 'react-native';
 
-// Exact 3-4-3 bubble layout from the ALE-HOP Pop-It console image
+// 3-4-3 bubble layout
 const ROWS = [
-  [0, 1, 2],       // Top row: 3 bubbles
-  [3, 4, 5, 6],    // Middle row: 4 bubbles
-  [7, 8, 9],       // Bottom row: 3 bubbles
+  [0, 1, 2],
+  [3, 4, 5, 6],
+  [7, 8, 9],
 ];
-
-const NOTE_LABELS = ['DO', 'RE', 'MI', 'FA', 'SOL', 'LA', 'SI', 'DO⁺', 'RE⁺', 'MI⁺'];
 
 export default function BubbleGrid({
   litBubbles,
@@ -17,11 +15,11 @@ export default function BubbleGrid({
   onPressBubble,
   disabled,
   isPoweredOn,
-  accentLedColor = '#4eff5e',
+  accentLedColor = '#00f0ff',
 }) {
   return (
-    <View style={styles.siliconeTrayOuter}>
-      <View style={styles.siliconeTrayInner}>
+    <View style={styles.padOuter}>
+      <View style={styles.padInner}>
         {ROWS.map((rowIndices, rowIdx) => (
           <View key={`row-${rowIdx}`} style={styles.bubbleRow}>
             {rowIndices.map((bubbleIdx) => {
@@ -41,7 +39,6 @@ export default function BubbleGrid({
                       isLit && [
                         styles.bubbleDomeLit,
                         {
-                          backgroundColor: '#fff6b3',
                           borderColor: accentLedColor,
                           shadowColor: accentLedColor,
                         },
@@ -49,38 +46,21 @@ export default function BubbleGrid({
                       isError && styles.bubbleDomeError,
                     ]}
                   >
-                    {/* Internal LED glow core */}
-                    {isLit && (
-                      <View
-                        style={[
-                          styles.ledCoreGlow,
-                          { backgroundColor: accentLedColor },
-                        ]}
-                      />
-                    )}
-
-                    {/* Error LED flash */}
-                    {isError && <View style={styles.ledErrorGlow} />}
-
-                    {/* 3D Silicone Specular Highlight (shifts when popped vs unpopped) */}
+                    {/* Minimalist precision center ring */}
                     <View
                       style={[
-                        styles.specularHighlight,
-                        isPopped && styles.specularHighlightPopped,
-                        isLit && styles.specularHighlightLit,
+                        styles.centerRing,
+                        isPopped && styles.centerRingPopped,
+                        isLit && {
+                          borderColor: accentLedColor,
+                          backgroundColor: accentLedColor,
+                        },
+                        isError && {
+                          borderColor: '#ff2a6d',
+                          backgroundColor: '#ff2a6d',
+                        },
                       ]}
                     />
-
-                    {/* Subtle musical note / bubble number indicator */}
-                    <Text
-                      style={[
-                        styles.bubbleNoteLabel,
-                        isLit && styles.bubbleNoteLabelLit,
-                        isPopped && styles.bubbleNoteLabelPopped,
-                      ]}
-                    >
-                      {NOTE_LABELS[bubbleIdx]}
-                    </Text>
                   </TouchableOpacity>
                 </View>
               );
@@ -93,26 +73,19 @@ export default function BubbleGrid({
 }
 
 const styles = StyleSheet.create({
-  siliconeTrayOuter: {
-    width: '96%',
-    backgroundColor: '#d9985f',
-    borderRadius: 68,
+  padOuter: {
+    width: '94%',
+    backgroundColor: '#13161f',
+    borderRadius: 56,
     padding: 8,
-    borderWidth: 4,
-    borderColor: '#b8763e',
-    shadowColor: '#4a1c30',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.35,
-    shadowRadius: 6,
-    elevation: 6,
+    borderWidth: 1.5,
+    borderColor: '#252a38',
   },
-  siliconeTrayInner: {
-    backgroundColor: '#e8aa74',
-    borderRadius: 60,
-    paddingVertical: 14,
+  padInner: {
+    backgroundColor: '#181c26',
+    borderRadius: 48,
+    paddingVertical: 16,
     paddingHorizontal: 6,
-    borderWidth: 2,
-    borderColor: '#f5c496',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -120,54 +93,44 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginVertical: 4,
+    marginVertical: 5,
   },
   socketRing: {
     width: 72,
     height: 72,
     borderRadius: 36,
-    backgroundColor: '#d18d54',
-    borderWidth: 3,
-    borderColor: '#b5713a',
+    backgroundColor: '#11141c',
+    borderWidth: 1.5,
+    borderColor: '#222736',
     marginHorizontal: 4,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#5c3312',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 2,
-    elevation: 3,
   },
   bubbleDome: {
     width: 58,
     height: 58,
     borderRadius: 29,
-    backgroundColor: '#f4c28c',
-    borderWidth: 2.5,
-    borderColor: '#fbe0c2',
+    backgroundColor: '#242938',
+    borderWidth: 2,
+    borderColor: '#353c52',
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#754217',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.45,
-    shadowRadius: 3,
+    shadowOpacity: 0.5,
+    shadowRadius: 4,
     elevation: 5,
-    position: 'relative',
   },
   bubbleDomePopped: {
-    width: 54,
-    height: 54,
-    borderRadius: 27,
-    backgroundColor: '#c9854d',
-    borderColor: '#9e602d',
-    borderWidth: 3,
-    transform: [{ scale: 0.92 }],
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.15,
+    backgroundColor: '#161922',
+    borderColor: '#1f2430',
+    transform: [{ scale: 0.91 }],
+    shadowOpacity: 0.1,
     elevation: 1,
   },
   bubbleDomeLit: {
-    borderWidth: 3.5,
+    backgroundColor: '#2b3347',
+    borderWidth: 2.5,
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.95,
     shadowRadius: 14,
@@ -175,62 +138,25 @@ const styles = StyleSheet.create({
     transform: [{ scale: 1.04 }],
   },
   bubbleDomeError: {
-    backgroundColor: '#ffccd5',
-    borderColor: '#ff0033',
-    borderWidth: 3.5,
-    shadowColor: '#ff0033',
+    backgroundColor: '#3b1826',
+    borderColor: '#ff2a6d',
+    borderWidth: 2.5,
+    shadowColor: '#ff2a6d',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.95,
     shadowRadius: 14,
     elevation: 12,
   },
-  ledCoreGlow: {
-    position: 'absolute',
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    opacity: 0.55,
-  },
-  ledErrorGlow: {
-    position: 'absolute',
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    backgroundColor: '#ff0033',
-    opacity: 0.65,
-  },
-  specularHighlight: {
-    position: 'absolute',
-    top: 7,
-    left: 11,
-    width: 18,
-    height: 10,
+  centerRing: {
+    width: 16,
+    height: 16,
     borderRadius: 8,
-    backgroundColor: 'rgba(255, 250, 240, 0.58)',
-    transform: [{ rotate: '-20deg' }],
+    borderWidth: 2,
+    borderColor: '#3b435c',
+    backgroundColor: 'transparent',
   },
-  specularHighlightPopped: {
-    top: 34,
-    left: 18,
-    width: 14,
-    height: 6,
-    backgroundColor: 'rgba(255, 235, 210, 0.22)',
-  },
-  specularHighlightLit: {
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-  },
-  bubbleNoteLabel: {
-    fontSize: 9,
-    fontWeight: '800',
-    color: 'rgba(122, 68, 25, 0.45)',
-    marginTop: 14,
-  },
-  bubbleNoteLabelLit: {
-    color: '#4a2500',
-    fontWeight: '900',
-  },
-  bubbleNoteLabelPopped: {
-    color: 'rgba(70, 35, 10, 0.4)',
-    marginTop: 0,
+  centerRingPopped: {
+    borderColor: '#252a3a',
+    transform: [{ scale: 0.85 }],
   },
 });
