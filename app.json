@@ -2,9 +2,9 @@
   "expo": {
     "name": "Pop-It Quick Push",
     "slug": "pop-it-quick-push",
-    "version": "1.0.0",
-    "orientation": "portrait",
-    "userInterfaceStyle": "light",
+    "version": "1.3.0",
+    "orientation": "default",
+    "userInterfaceStyle": "dark",
     "splash": {
       "backgroundColor": "#f7a8c4"
     },
