@@ -1,4 +1,4 @@
-const CACHE_NAME = 'pulse-trainer-v5';
+const CACHE_NAME = 'pulse-trainer-v6';
 const ASSETS = ['./', './index.html', './manifest.json', './icon.svg', './version.json'];
 
 self.addEventListener('install', (e) => {
