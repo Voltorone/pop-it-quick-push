@@ -415,7 +415,9 @@ function buildBinaryManifest() {
     'manifest',
     'package',
     'com.alehop.popitquickpush',
-    '1.0.0',
+    '1.4.0',
+    'uses-permission',
+    'android.permission.INTERNET',
     'uses-sdk',
     'application',
     'ALE-POP Quick Push',
@@ -541,12 +543,18 @@ function buildBinaryManifest() {
   const xmlNodes = [
     makeNamespaceChunk(true, 2),
 
-    // <manifest android:versionCode="1" android:versionName="1.0.0" package="com.alehop.popitquickpush">
+    // <manifest android:versionCode="5" android:versionName="1.4.0" package="com.alehop.popitquickpush">
     makeStartElement('manifest', 2, [
-      { ns: NS_ANDROID, name: 'versionCode', rawStr: null, type: 0x10, data: 1 },
-      { ns: NS_ANDROID, name: 'versionName', rawStr: '1.0.0', type: 0x03, data: sIdx('1.0.0') },
+      { ns: NS_ANDROID, name: 'versionCode', rawStr: null, type: 0x10, data: 5 },
+      { ns: NS_ANDROID, name: 'versionName', rawStr: '1.4.0', type: 0x03, data: sIdx('1.4.0') },
       { ns: NO_NS, name: 'package', rawStr: 'com.alehop.popitquickpush', type: 0x03, data: sIdx('com.alehop.popitquickpush') },
     ]),
+
+    // <uses-permission android:name="android.permission.INTERNET" />
+    makeStartElement('uses-permission', 3, [
+      { ns: NS_ANDROID, name: 'name', rawStr: 'android.permission.INTERNET', type: 0x03, data: sIdx('android.permission.INTERNET') },
+    ]),
+    makeEndElement('uses-permission', 3),
 
     // <uses-sdk android:minSdkVersion="21" android:targetSdkVersion="33" />
     makeStartElement('uses-sdk', 3, [
@@ -563,14 +571,14 @@ function buildBinaryManifest() {
       { ns: NS_ANDROID, name: 'hardwareAccelerated', rawStr: null, type: 0x12, data: 0xffffffff },
     ]),
 
-    // <activity android:theme="@android:style/Theme.NoTitleBar.Fullscreen" android:label="ALE-POP Quick Push" android:name="com.alehop.popitquickpush.MainActivity" android:exported="true" android:screenOrientation="portrait" android:configChanges="orientation|keyboardHidden|screenSize">
+    // <activity android:theme="@android:style/Theme.NoTitleBar.Fullscreen" android:label="ALE-POP Quick Push" android:name="com.alehop.popitquickpush.MainActivity" android:exported="true" android:screenOrientation="sensor" android:configChanges="orientation|keyboardHidden|screenSize|screenLayout">
     makeStartElement('activity', 5, [
       { ns: NS_ANDROID, name: 'theme', rawStr: null, type: 0x01, data: 0x01030007 },
       { ns: NS_ANDROID, name: 'label', rawStr: 'ALE-POP Quick Push', type: 0x03, data: sIdx('ALE-POP Quick Push') },
       { ns: NS_ANDROID, name: 'name', rawStr: 'com.alehop.popitquickpush.MainActivity', type: 0x03, data: sIdx('com.alehop.popitquickpush.MainActivity') },
       { ns: NS_ANDROID, name: 'exported', rawStr: null, type: 0x12, data: 0xffffffff },
-      { ns: NS_ANDROID, name: 'screenOrientation', rawStr: null, type: 0x10, data: 1 }, // portrait = 1
-      { ns: NS_ANDROID, name: 'configChanges', rawStr: null, type: 0x11, data: 0x04a0 },
+      { ns: NS_ANDROID, name: 'screenOrientation', rawStr: null, type: 0x10, data: 4 }, // sensor = 4 (auto portrait/landscape)
+      { ns: NS_ANDROID, name: 'configChanges', rawStr: null, type: 0x11, data: 0x0da0 },
     ]),
 
     // <intent-filter>
@@ -674,11 +682,34 @@ function asn1Int(intBuf) {
 }
 
 function createSelfSignedCertAndKey() {
-  const { publicKey, privateKey } = crypto.generateKeyPairSync('rsa', {
-    modulusLength: 2048,
-    publicKeyEncoding: { type: 'spki', format: 'der' },
-    privateKeyEncoding: { type: 'pkcs8', format: 'pem' },
-  });
+  const keyFilePath = path.join(__dirname, '.apk-signing-key.json');
+  let publicKey;
+  let privateKey;
+
+  if (fs.existsSync(keyFilePath)) {
+    const saved = JSON.parse(fs.readFileSync(keyFilePath, 'utf8'));
+    publicKey = Buffer.from(saved.publicKeyDerBase64, 'base64');
+    privateKey = saved.privateKeyPem;
+  } else {
+    const generated = crypto.generateKeyPairSync('rsa', {
+      modulusLength: 2048,
+      publicKeyEncoding: { type: 'spki', format: 'der' },
+      privateKeyEncoding: { type: 'pkcs8', format: 'pem' },
+    });
+    publicKey = generated.publicKey;
+    privateKey = generated.privateKey;
+    fs.writeFileSync(
+      keyFilePath,
+      JSON.stringify(
+        {
+          publicKeyDerBase64: publicKey.toString('base64'),
+          privateKeyPem: privateKey,
+        },
+        null,
+        2
+      )
+    );
+  }
 
   // OIDs
   const oidSha256WithRsa = [0x2a, 0x86, 0x48, 0x86, 0xf7, 0x0d, 0x01, 0x01, 0x0b];
@@ -854,6 +885,8 @@ function buildApkSigningBlockV2(digestSha256, certInfo) {
 
 function buildApk() {
   const htmlContent = fs.readFileSync(path.join(__dirname, 'mobile-preview.html'));
+  // Keep index.html synchronized for Apple iOS PWA on GitHub Pages
+  fs.writeFileSync(path.join(__dirname, 'index.html'), htmlContent);
   const manifestBin = buildBinaryManifest();
   const resourcesArsc = buildMinimalResourcesArsc();
   const classesDex = buildClassesDex();
