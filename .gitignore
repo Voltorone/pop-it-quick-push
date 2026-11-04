@@ -7,5 +7,8 @@ web-build/
 *.p12
 *.key
 *.mobileprovision
+.apk-signing-key.json
+.github-device-code.json
+.github-token.json
 .DS_Store
 Thumbs.db
