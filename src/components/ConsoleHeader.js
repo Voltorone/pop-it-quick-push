@@ -4,24 +4,18 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 export const GAME_MODES = [
   {
     id: 'memory',
-    name: 'MODO MEMORIA',
-    shortName: 'MEMORIA',
-    subtitle: 'Observa la secuencia aleatoria y repítela en orden',
-    ledColor: '#00f5d4',
+    icon: '◎',
+    ledColor: '#00f0ff',
   },
   {
     id: 'reflex',
-    name: 'MODO REFLEJOS',
-    shortName: 'REFLEJOS',
-    subtitle: 'Explota todas las bolas iluminadas antes de que acabe el tiempo',
-    ledColor: '#ffbe0b',
+    icon: '⚡',
+    ledColor: '#ffb800',
   },
   {
     id: 'timeattack',
-    name: 'CONTRARRELOJ 60s',
-    shortName: 'RELOJ 60s',
-    subtitle: 'Explota y reinicia con el gatillo tantas rondas como puedas en 60s',
-    ledColor: '#ff5d8f',
+    icon: '⏱',
+    ledColor: '#ff2a6d',
   },
 ];
 
@@ -38,156 +32,186 @@ export default function ConsoleHeader({
   score,
   highScore,
   lives,
-  statusText,
+  gameState,
   timerProgress,
   timeLeftSeconds,
 }) {
   const currentMode = GAME_MODES[modeIndex];
 
-  const getVolumeIcon = () => {
-    if (volumeLevel === 0) return '🔇';
-    if (volumeLevel === 1) return '🔈';
-    if (volumeLevel === 2) return '🔉';
-    return '🔊';
+  const getStateIcon = () => {
+    if (!isPoweredOn) return '⏻';
+    if (gameState === 'showing') return '👁';
+    if (gameState === 'playing') return '👆';
+    if (gameState === 'awaiting_trigger') return '⏫';
+    if (gameState === 'gameover') return '↺';
+    return '▶';
   };
 
   return (
     <View style={styles.headerContainer}>
-      {/* 3 Physical Top Buttons matching the ALE-HOP console */}
+      {/* Minimalist Top Hardware Controls (Icon-Only) */}
       <View style={styles.topButtonsRow}>
-        {/* Mode Button */}
-        <View style={styles.buttonWrapper}>
+        {/* Mode Selector Button with 3 mode indicator dots */}
+        <View style={styles.controlItem}>
           <TouchableOpacity
             activeOpacity={0.75}
             style={[
-              styles.physicalButton,
-              !isPoweredOn && styles.physicalButtonDisabled,
+              styles.iconButton,
+              isPoweredOn && { borderColor: currentMode.ledColor },
             ]}
             onPress={onCycleMode}
           >
-            <View style={styles.buttonInnerRing}>
-              <Text style={styles.buttonSymbol}>☰</Text>
-            </View>
+            <Text
+              style={[
+                styles.iconText,
+                isPoweredOn && { color: currentMode.ledColor },
+              ]}
+            >
+              {currentMode.icon}
+            </Text>
           </TouchableOpacity>
-          <Text style={styles.buttonLabel}>MODO</Text>
+          <View style={styles.dotsRow}>
+            {GAME_MODES.map((m, idx) => (
+              <View
+                key={m.id}
+                style={[
+                  styles.microDot,
+                  isPoweredOn &&
+                    idx === modeIndex && {
+                      backgroundColor: m.ledColor,
+                    },
+                ]}
+              />
+            ))}
+          </View>
         </View>
 
-        {/* Power Button (Slightly central & prominent) */}
-        <View style={styles.buttonWrapper}>
+        {/* Power Button */}
+        <View style={styles.controlItem}>
           <TouchableOpacity
             activeOpacity={0.75}
             style={[
-              styles.physicalButton,
+              styles.iconButton,
               styles.powerButton,
               isPoweredOn && styles.powerButtonActive,
             ]}
             onPress={onTogglePower}
           >
-            <View
+            <Text
               style={[
-                styles.buttonInnerRing,
-                isPoweredOn && styles.powerInnerRingActive,
+                styles.iconText,
+                isPoweredOn ? styles.powerIconActive : styles.powerIconOff,
               ]}
             >
-              <Text
-                style={[
-                  styles.buttonSymbol,
-                  isPoweredOn && styles.powerSymbolActive,
-                ]}
-              >
-                ⏻
-              </Text>
-            </View>
+              ⏻
+            </Text>
           </TouchableOpacity>
-          <Text style={styles.buttonLabel}>ON / OFF</Text>
+          <View
+            style={[
+              styles.powerLed,
+              isPoweredOn && { backgroundColor: '#00f59b' },
+            ]}
+          />
         </View>
 
-        {/* Volume Button */}
-        <View style={styles.buttonWrapper}>
+        {/* Volume Button with 3 level dots */}
+        <View style={styles.controlItem}>
           <TouchableOpacity
             activeOpacity={0.75}
-            style={[
-              styles.physicalButton,
-              !isPoweredOn && styles.physicalButtonDisabled,
-            ]}
+            style={styles.iconButton}
             onPress={onCycleVolume}
           >
-            <View style={styles.buttonInnerRing}>
-              <Text style={styles.buttonSymbol}>{getVolumeIcon()}</Text>
-            </View>
+            <Text style={[styles.iconText, !isPoweredOn && styles.iconDisabled]}>
+              {volumeLevel === 0 ? '🔇' : '🔊'}
+            </Text>
           </TouchableOpacity>
-          <Text style={styles.buttonLabel}>
-            VOL {volumeLevel === 0 ? 'OFF' : volumeLevel}
-          </Text>
+          <View style={styles.dotsRow}>
+            {[1, 2, 3].map((v) => (
+              <View
+                key={v}
+                style={[
+                  styles.microDot,
+                  isPoweredOn &&
+                    volumeLevel >= v && {
+                      backgroundColor: '#e2e8f0',
+                    },
+                ]}
+              />
+            ))}
+          </View>
         </View>
       </View>
 
-      {/* Digital LED Screen Panel */}
-      <View style={[styles.ledScreen, !isPoweredOn && styles.ledScreenOff]}>
+      {/* Ultra-Clean Minimalist OLED Status Bar */}
+      <View style={[styles.oledPanel, !isPoweredOn && styles.oledPanelOff]}>
         {isPoweredOn ? (
           <>
-            <View style={styles.ledTopRow}>
-              <View
-                style={[
-                  styles.modeBadge,
-                  { borderColor: currentMode.ledColor },
-                ]}
-              >
-                <Text
-                  style={[styles.modeBadgeText, { color: currentMode.ledColor }]}
-                >
-                  {currentMode.shortName}
-                </Text>
-              </View>
-
-              <View style={styles.statsGroup}>
+            <View style={styles.oledMainRow}>
+              {/* Left: Level + 5 Sub-Round Dots (or Timer) */}
+              <View style={styles.levelBlock}>
                 {currentMode.id === 'timeattack' ? (
-                  <Text style={styles.timerReadout}>⏱ {timeLeftSeconds}s</Text>
-                ) : (
-                  <Text style={styles.levelReadout}>
-                    NVL {String(level).padStart(2, '0')}{' '}
-                    <Text style={styles.subRoundReadout}>
-                      ({subRound}/{totalSubRounds})
-                    </Text>
+                  <Text style={[styles.bigDigits, { color: currentMode.ledColor }]}>
+                    {String(timeLeftSeconds).padStart(2, '0')}s
                   </Text>
+                ) : (
+                  <>
+                    <Text style={styles.bigDigits}>
+                      {String(level).padStart(2, '0')}
+                    </Text>
+                    <View style={styles.roundDotsCol}>
+                      {Array.from({ length: totalSubRounds }).map((_, i) => (
+                        <View
+                          key={i}
+                          style={[
+                            styles.roundDot,
+                            i < subRound && {
+                              backgroundColor: currentMode.ledColor,
+                            },
+                          ]}
+                        />
+                      ))}
+                    </View>
+                  </>
                 )}
               </View>
 
-              <View style={styles.livesContainer}>
-                {currentMode.id === 'timeattack' ? (
-                  <Text style={styles.scoreReadout}>★ {score}</Text>
-                ) : (
-                  <Text style={styles.heartsText}>
-                    {'♥'.repeat(Math.max(0, lives))}
-                    <Text style={styles.heartsLost}>
-                      {'♡'.repeat(Math.max(0, 3 - lives))}
-                    </Text>
-                  </Text>
+              {/* Center: Intuitive State Cue Icon */}
+              <View style={styles.centerCue}>
+                <Text style={styles.stateIcon}>{getStateIcon()}</Text>
+              </View>
+
+              {/* Right: Lives Diamonds & Score */}
+              <View style={styles.rightStats}>
+                {currentMode.id !== 'timeattack' && (
+                  <View style={styles.livesRow}>
+                    {[0, 1, 2].map((i) => (
+                      <View
+                        key={i}
+                        style={[
+                          styles.lifeDiamond,
+                          i < lives && styles.lifeDiamondActive,
+                        ]}
+                      />
+                    ))}
+                  </View>
                 )}
+                <View style={styles.scoreRow}>
+                  <Text style={styles.scoreVal}>{score}</Text>
+                  <Text style={styles.highScoreVal}>🏆 {highScore}</Text>
+                </View>
               </View>
             </View>
 
-            <View style={styles.ledBottomRow}>
-              <Text style={styles.statusMessage} numberOfLines={1}>
-                {statusText}
-              </Text>
-              <Text style={styles.highScoreText}>
-                PTS: {score} | RÉCORD: {highScore}
-              </Text>
-            </View>
-
-            {/* Timer bar for Reflex / Time Attack / Memory countdown */}
-            <View style={styles.timerBarTrack}>
+            {/* Minimalist Progress Line */}
+            <View style={styles.progressTrack}>
               <View
                 style={[
-                  styles.timerBarFill,
+                  styles.progressFill,
                   {
                     width: `${Math.max(0, Math.min(100, timerProgress * 100))}%`,
                     backgroundColor:
-                      timerProgress < 0.28
-                        ? '#ff3366'
-                        : timerProgress < 0.55
-                        ? '#ffbe0b'
+                      timerProgress < 0.25
+                        ? '#ff2a6d'
                         : currentMode.ledColor,
                   },
                 ]}
@@ -195,10 +219,8 @@ export default function ConsoleHeader({
             </View>
           </>
         ) : (
-          <View style={styles.ledOffContent}>
-            <Text style={styles.ledOffText}>
-              CONSOLA APAGADA • PULSA ⏻ PARA JUGAR
-            </Text>
+          <View style={styles.offStateRow}>
+            <View style={styles.offLine} />
           </View>
         )}
       </View>
@@ -210,185 +232,185 @@ const styles = StyleSheet.create({
   headerContainer: {
     width: '100%',
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: 14,
   },
   topButtonsRow: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    width: '78%',
+    marginBottom: 14,
+  },
+  controlItem: {
+    alignItems: 'center',
+  },
+  iconButton: {
+    width: 46,
+    height: 46,
+    borderRadius: 23,
+    backgroundColor: '#232733',
+    borderWidth: 1.5,
+    borderColor: '#363c4e',
     justifyContent: 'center',
     alignItems: 'center',
-    gap: 22,
-    marginBottom: 10,
-  },
-  buttonWrapper: {
-    alignItems: 'center',
-    marginHorizontal: 8,
-  },
-  physicalButton: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: '#f3c390',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 3,
-    borderColor: '#d99b66',
-    shadowColor: '#6b384c',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.35,
-    shadowRadius: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 4,
     elevation: 5,
   },
-  physicalButtonDisabled: {
-    opacity: 0.7,
-  },
   powerButton: {
-    width: 54,
-    height: 54,
-    borderRadius: 27,
+    width: 52,
+    height: 52,
+    borderRadius: 26,
   },
   powerButtonActive: {
-    borderColor: '#ff5d8f',
-    shadowColor: '#ff5d8f',
-    shadowOpacity: 0.6,
-    shadowRadius: 6,
+    borderColor: '#475069',
+    backgroundColor: '#282d3b',
   },
-  buttonInnerRing: {
+  iconText: {
+    fontSize: 18,
+    color: '#cbd5e1',
+    fontWeight: '700',
+  },
+  iconDisabled: {
+    opacity: 0.3,
+  },
+  powerIconActive: {
+    color: '#f8fafc',
+  },
+  powerIconOff: {
+    color: '#475569',
+  },
+  dotsRow: {
+    flexDirection: 'row',
+    gap: 5,
+    marginTop: 6,
+  },
+  microDot: {
+    width: 5,
+    height: 5,
+    borderRadius: 2.5,
+    backgroundColor: '#2d3343',
+  },
+  powerLed: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#2d3343',
+    marginTop: 6,
+  },
+  oledPanel: {
+    width: '92%',
+    backgroundColor: '#0f1117',
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderWidth: 1.5,
+    borderColor: '#262a36',
+    minHeight: 62,
+    justifyContent: 'space-between',
+  },
+  oledPanelOff: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  oledMainRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  levelBlock: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    minWidth: 75,
+  },
+  bigDigits: {
+    color: '#f8fafc',
+    fontSize: 22,
+    fontWeight: '800',
+    letterSpacing: 1,
+    fontVariant: ['tabular-nums'],
+  },
+  roundDotsCol: {
+    flexDirection: 'row',
+    gap: 4,
+  },
+  roundDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#262b38',
+  },
+  centerCue: {
     width: 36,
     height: 36,
     borderRadius: 18,
-    borderWidth: 1.5,
-    borderColor: '#9c6234',
-    backgroundColor: '#f7cfa4',
+    backgroundColor: '#181b24',
     justifyContent: 'center',
     alignItems: 'center',
   },
-  powerInnerRingActive: {
-    backgroundColor: '#ffe5ec',
-    borderColor: '#d9386a',
-  },
-  buttonSymbol: {
+  stateIcon: {
     fontSize: 17,
-    fontWeight: '800',
-    color: '#6e3f19',
   },
-  powerSymbolActive: {
-    color: '#d90429',
-  },
-  buttonLabel: {
-    marginTop: 3,
-    fontSize: 10,
-    fontWeight: '800',
-    color: '#8a3a5b',
-    letterSpacing: 0.6,
-  },
-  ledScreen: {
-    width: '94%',
-    backgroundColor: '#1d1526',
-    borderRadius: 14,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderWidth: 3,
-    borderColor: '#d87fa1',
-    minHeight: 68,
-    justifyContent: 'space-between',
-  },
-  ledScreenOff: {
-    backgroundColor: '#261e2e',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  ledTopRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  modeBadge: {
-    borderWidth: 1.2,
-    borderRadius: 6,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    backgroundColor: 'rgba(255,255,255,0.05)',
-  },
-  modeBadgeText: {
-    fontSize: 10,
-    fontWeight: '900',
-    letterSpacing: 0.7,
-  },
-  statsGroup: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  levelReadout: {
-    color: '#ffffff',
-    fontSize: 14,
-    fontWeight: '900',
-    letterSpacing: 0.8,
-  },
-  subRoundReadout: {
-    color: '#a99bb8',
-    fontSize: 11,
-    fontWeight: '700',
-  },
-  timerReadout: {
-    color: '#ffbe0b',
-    fontSize: 15,
-    fontWeight: '900',
-  },
-  livesContainer: {
-    minWidth: 52,
+  rightStats: {
     alignItems: 'flex-end',
+    minWidth: 75,
   },
-  heartsText: {
-    color: '#ff3366',
-    fontSize: 15,
-    letterSpacing: 2,
-  },
-  heartsLost: {
-    color: '#594a66',
-  },
-  scoreReadout: {
-    color: '#00f5d4',
-    fontSize: 14,
-    fontWeight: '900',
-  },
-  ledBottomRow: {
+  livesRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: 5,
-    marginBottom: 5,
+    gap: 6,
+    marginBottom: 4,
   },
-  statusMessage: {
-    color: '#f8f9fa',
+  lifeDiamond: {
+    width: 7,
+    height: 7,
+    borderRadius: 2,
+    transform: [{ rotate: '45deg' }],
+    backgroundColor: '#262b38',
+  },
+  lifeDiamondActive: {
+    backgroundColor: '#ff2a6d',
+  },
+  scoreRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  scoreVal: {
+    color: '#f1f5f9',
+    fontSize: 13,
+    fontWeight: '800',
+    fontVariant: ['tabular-nums'],
+  },
+  highScoreVal: {
+    color: '#64748b',
     fontSize: 11,
     fontWeight: '700',
-    flex: 1,
-    marginRight: 8,
+    fontVariant: ['tabular-nums'],
   },
-  highScoreText: {
-    color: '#b8a9c9',
-    fontSize: 10,
-    fontWeight: '800',
-  },
-  timerBarTrack: {
+  progressTrack: {
     width: '100%',
-    height: 5,
-    backgroundColor: '#352844',
-    borderRadius: 3,
+    height: 3,
+    backgroundColor: '#1e222d',
+    borderRadius: 2,
     overflow: 'hidden',
   },
-  timerBarFill: {
+  progressFill: {
     height: '100%',
-    borderRadius: 3,
+    borderRadius: 2,
   },
-  ledOffContent: {
-    paddingVertical: 14,
+  offStateRow: {
+    width: '100%',
     alignItems: 'center',
+    paddingVertical: 14,
   },
-  ledOffText: {
-    color: '#756285',
-    fontSize: 11,
-    fontWeight: '800',
-    letterSpacing: 1,
+  offLine: {
+    width: 36,
+    height: 3,
+    borderRadius: 2,
+    backgroundColor: '#1e222d',
   },
 });
