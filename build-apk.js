@@ -543,9 +543,9 @@ function buildBinaryManifest() {
   const xmlNodes = [
     makeNamespaceChunk(true, 2),
 
-    // <manifest android:versionCode="5" android:versionName="1.4.0" package="com.alehop.popitquickpush">
+    // <manifest android:versionCode="6" android:versionName="1.5.0" package="com.alehop.popitquickpush">
     makeStartElement('manifest', 2, [
-      { ns: NS_ANDROID, name: 'versionCode', rawStr: null, type: 0x10, data: 5 },
+      { ns: NS_ANDROID, name: 'versionCode', rawStr: null, type: 0x10, data: 6 },
       { ns: NS_ANDROID, name: 'versionName', rawStr: '1.4.0', type: 0x03, data: sIdx('1.4.0') },
       { ns: NO_NS, name: 'package', rawStr: 'com.alehop.popitquickpush', type: 0x03, data: sIdx('com.alehop.popitquickpush') },
     ]),
