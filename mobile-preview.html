@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#f5a3c7" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="ALE-POP" />
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="icon" type="image/svg+xml" href="/icon.svg" />
+  <link rel="apple-touch-icon" href="/icon.svg" />
+  <title>ALE-POP • Quick Push Mobile Console</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      background: radial-gradient(circle at 50% 25%, #372549 0%, #1c1226 100%);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 12px;
+      color: #fff;
+    }
+    .console-body {
+      width: 100%;
+      max-width: 400px;
+      background: linear-gradient(180deg, #f9b4d2 0%, #f294be 60%, #e57aa9 100%);
+      border-radius: 64px;
+      padding: 20px 14px 22px;
+      border: 5px solid #dc6fa0;
+      box-shadow:
+        0 18px 40px rgba(0,0,0,0.6),
+        inset 0 4px 10px rgba(255,255,255,0.65),
+        inset 0 -8px 14px rgba(145, 42, 88, 0.45);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .grip-arc {
+      position: absolute;
+      top: 28%;
+      width: 48px;
+      height: 44%;
+      border-radius: 32px;
+      border: 3.5px solid rgba(196, 86, 136, 0.55);
+      pointer-events: none;
+    }
+    .grip-left { left: -28px; }
+    .grip-right { right: -28px; }
+
+    /* Top 3 Buttons */
+    .top-buttons {
+      display: flex;
+      gap: 24px;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 12px;
+      z-index: 2;
+    }
+    .btn-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .top-btn {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 30%, #fae0c3, #e6ad75 75%, #c7864b);
+      border: 3px solid #c7834a;
+      box-shadow: 0 4px 6px rgba(92, 42, 68, 0.45), inset 0 2px 3px rgba(255,255,255,0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: transform 0.08s ease;
+    }
+    .top-btn:active {
+      transform: translateY(2px) scale(0.95);
+    }
+    .top-btn.power-btn {
+      width: 54px;
+      height: 54px;
+    }
+    .top-btn.power-on {
+      border-color: #ff477e;
+      box-shadow: 0 0 12px rgba(255, 71, 126, 0.75), inset 0 2px 3px rgba(255,255,255,0.8);
+    }
+    .top-btn-inner {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      border: 1.8px solid #8f5424;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      font-weight: 900;
+      color: #63340e;
+    }
+    .power-on .top-btn-inner {
+      color: #d90429;
+      border-color: #d90429;
+      background: rgba(255, 229, 236, 0.7);
+    }
+    .btn-label {
+      font-size: 10px;
+      font-weight: 800;
+      color: #7d2c50;
+      margin-top: 4px;
+      letter-spacing: 0.6px;
+    }
+
+    /* LED Display */
+    .led-screen {
+      width: 94%;
+      background: #1a1224;
+      border-radius: 14px;
+      padding: 8px 12px;
+      border: 3px solid #d4729d;
+      box-shadow: inset 0 3px 8px rgba(0,0,0,0.8);
+      margin-bottom: 12px;
+      z-index: 2;
+    }
+    .led-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .mode-badge {
+      font-size: 10px;
+      font-weight: 900;
+      padding: 2px 7px;
+      border-radius: 6px;
+      border: 1.5px solid #00f5d4;
+      color: #00f5d4;
+      letter-spacing: 0.6px;
+    }
+    .level-readout {
+      font-size: 14px;
+      font-weight: 900;
+      color: #fff;
+      letter-spacing: 0.8px;
+    }
+    .hearts {
+      font-size: 15px;
+      color: #ff3366;
+      letter-spacing: 2px;
+    }
+    .led-bottom {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 6px 0;
+      font-size: 11px;
+      font-weight: 700;
+      color: #f1e8fa;
+    }
+    .score-text {
+      font-size: 10px;
+      color: #b7a2cc;
+      font-weight: 800;
+      white-space: nowrap;
+      margin-left: 8px;
+    }
+    .timer-track {
+      width: 100%;
+      height: 5px;
+      background: #332445;
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .timer-fill {
+      height: 100%;
+      width: 100%;
+      background: #00f5d4;
+      transition: width 0.04s linear, background-color 0.2s ease;
+    }
+
+    /* Silicone 3-4-3 Bubble Pad */
+    .silicone-outer {
+      width: 96%;
+      background: #d69256;
+      border-radius: 64px;
+      padding: 8px;
+      border: 4px solid #b57138;
+      box-shadow: inset 0 3px 6px rgba(82, 42, 12, 0.5), 0 4px 8px rgba(89, 25, 54, 0.35);
+      z-index: 2;
+    }
+    .silicone-inner {
+      background: linear-gradient(180deg, #edb27d 0%, #df9d62 100%);
+      border-radius: 56px;
+      padding: 14px 4px;
+      border: 2px solid #f7caa0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+    .bubble-row {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+    }
+    .socket-ring {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      background: #cc864b;
+      border: 3px solid #ad6931;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: inset 0 3px 5px rgba(66, 33, 7, 0.45);
+    }
+    .bubble-dome {
+      width: 58px;
+      height: 58px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 32% 28%, #ffe5c4 0%, #f2be87 55%, #d69456 100%);
+      border: 2.5px solid #fae0c3;
+      box-shadow: 0 5px 7px rgba(87, 45, 11, 0.5);
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: transform 0.07s ease, box-shadow 0.07s ease;
+    }
+    .bubble-dome.popped {
+      transform: scale(0.9);
+      background: radial-gradient(circle at 65% 70%, #dba069 0%, #b57239 75%, #8c511f 100%);
+      border-color: #9c5d28;
+      box-shadow: inset 0 5px 9px rgba(48, 22, 4, 0.65);
+    }
+    .bubble-dome.lit {
+      background: radial-gradient(circle at 50% 50%, #ffffff 0%, #fff799 45%, #4eff5e 100%);
+      border-color: #ffffff;
+      box-shadow: 0 0 20px #4eff5e, 0 0 34px rgba(78, 255, 94, 0.8);
+      transform: scale(1.05);
+    }
+    .bubble-dome.error {
+      background: radial-gradient(circle at 50% 50%, #ffd6de 0%, #ff4769 50%, #c9002b 100%);
+      border-color: #ff0033;
+      box-shadow: 0 0 22px #ff0033;
+    }
+    .note-tag {
+      font-size: 9px;
+      font-weight: 800;
+      color: rgba(105, 53, 14, 0.45);
+      margin-top: 22px;
+      pointer-events: none;
+    }
+    .bubble-dome.lit .note-tag {
+      color: #1b4d12;
+      font-weight: 900;
+    }
+
+    /* Brand Plate & Back Trigger */
+    .brand-plate {
+      margin-top: 12px;
+      margin-bottom: 10px;
+      border: 2.5px solid #2b192e;
+      background: #f7b2cc;
+      padding: 3px 18px;
+      border-radius: 3px;
+      font-size: 15px;
+      font-weight: 900;
+      color: #2b192e;
+      letter-spacing: 2.2px;
+      z-index: 2;
+    }
+    .back-trigger {
+      width: 92%;
+      background: linear-gradient(180deg, #eb94b7 0%, #d96d99 100%);
+      border: 3.5px solid #bd4e7c;
+      border-radius: 24px;
+      padding: 12px 14px;
+      text-align: center;
+      cursor: pointer;
+      box-shadow: 0 6px 12px rgba(69, 17, 42, 0.45), inset 0 2px 4px rgba(255,255,255,0.5);
+      transition: all 0.12s ease;
+      z-index: 2;
+    }
+    .back-trigger:active {
+      transform: translateY(3px) scale(0.98);
+    }
+    .back-trigger.ready-pulse {
+      background: linear-gradient(180deg, #48bfe3 0%, #00f5d4 100%);
+      border-color: #00a896;
+      box-shadow: 0 0 20px rgba(0, 245, 212, 0.85);
+      animation: pulseTrigger 0.8s infinite alternate;
+    }
+    .back-trigger.start-pulse {
+      background: linear-gradient(180deg, #ffd166 0%, #ffbe0b 100%);
+      border-color: #d49600;
+      box-shadow: 0 0 14px rgba(255, 190, 11, 0.65);
+    }
+    @keyframes pulseTrigger {
+      from { transform: scale(1); }
+      to { transform: scale(1.03); }
+    }
+    .trigger-title {
+      font-size: 14px;
+      font-weight: 900;
+      color: #361024;
+      letter-spacing: 0.7px;
+    }
+    .trigger-sub {
+      font-size: 10px;
+      font-weight: 700;
+      color: #571d3c;
+      margin-top: 3px;
+    }
+    .caption {
+      margin-top: 12px;
+      font-size: 12px;
+      color: #cbb8de;
+      text-align: center;
+      max-width: 380px;
+    }
+  </style>
+</head>
+<body>
+  <div class="console-body">
+    <div class="grip-arc grip-left"></div>
+    <div class="grip-arc grip-right"></div>
+
+    <!-- Top 3 Physical Buttons -->
+    <div class="top-buttons">
+      <div class="btn-wrap">
+        <button class="top-btn" id="btnMode" title="Cambiar Modo">
+          <div class="top-btn-inner">☰</div>
+        </button>
+        <div class="btn-label">MODO</div>
+      </div>
+
+      <div class="btn-wrap">
+        <button class="top-btn power-btn power-on" id="btnPower" title="Encender / Apagar">
+          <div class="top-btn-inner">⏻</div>
+        </button>
+        <div class="btn-label">ON / OFF</div>
+      </div>
+
+      <div class="btn-wrap">
+        <button class="top-btn" id="btnVol" title="Volumen">
+          <div class="top-btn-inner" id="volIcon">🔊</div>
+        </button>
+        <div class="btn-label" id="volLabel">VOL 3</div>
+      </div>
+    </div>
+
+    <!-- LED Status Screen -->
+    <div class="led-screen">
+      <div class="led-top">
+        <div class="mode-badge" id="modeBadge">MEMORIA</div>
+        <div class="level-readout" id="levelReadout">NVL 01 (1/5)</div>
+        <div class="hearts" id="heartsReadout">♥♥♥</div>
+      </div>
+      <div class="led-bottom">
+        <span id="statusText">¡Pulsa el gatillo inferior para empezar!</span>
+        <span class="score-text" id="scoreReadout">PTS: 0 | RÉCORD: 0</span>
+      </div>
+      <div class="timer-track">
+        <div class="timer-fill" id="timerFill"></div>
+      </div>
+    </div>
+
+    <!-- 3-4-3 Silicone Bubble Matrix -->
+    <div class="silicone-outer">
+      <div class="silicone-inner" id="bubbleGrid"></div>
+    </div>
+
+    <!-- Brand Plate & Back Trigger -->
+    <div class="brand-plate">ALE-POP</div>
+
+    <button class="back-trigger start-pulse" id="btnTrigger">
+      <div class="trigger-title" id="triggerTitle">¡PULSA EL GATILLO PARA EMPEZAR!</div>
+      <div class="trigger-sub" id="triggerSub">Genera una secuencia 100% aleatoria</div>
+    </button>
+  </div>
+
+  <div class="caption" id="helperCaption">
+    💡 MODO MEMORIA: Observa la secuencia aleatoria, repítela en orden y pulsa el gatillo trasero.
+  </div>
+
+  <script>
+    const NOTES = [523.25, 587.33, 659.25, 698.46, 783.99, 880.00, 987.77, 1046.50, 1174.66, 1318.51];
+    const NOTE_NAMES = ['DO', 'RE', 'MI', 'FA', 'SOL', 'LA', 'SI', 'DO⁺', 'RE⁺', 'MI⁺'];
+    const ROWS = [[0, 1, 2], [3, 4, 5, 6], [7, 8, 9]];
+    const MODES = [
+      { id: 'memory', short: 'MEMORIA', name: 'MODO MEMORIA', color: '#00f5d4', desc: 'Observa la secuencia aleatoria y repítela en orden' },
+      { id: 'reflex', short: 'REFLEJOS', name: 'MODO REFLEJOS', color: '#ffbe0b', desc: 'Explota todas las burbujas iluminadas antes de que acabe el tiempo' },
+      { id: 'timeattack', short: 'RELOJ 60s', name: 'CONTRARRELOJ 60s', color: '#ff5d8f', desc: 'Explota y reinicia con el gatillo tantas rondas como puedas en 60s' }
+    ];
+
+    let isPowered = true;
+    let modeIdx = 0;
+    let volLevel = 3;
+    let gameState = 'idle'; // idle, showing, playing, awaiting_trigger, gameover
+    let level = 1;
+    let subRound = 1;
+    let score = 0;
+    let highScores = { memory: 0, reflex: 0, timeattack: 0 };
+    let lives = 3;
+
+    let litSet = new Set();
+    let poppedSet = new Set();
+    let errorSet = new Set();
+    let sequence = [];
+    let playerStep = 0;
+    let activeTargets = [];
+    let timeouts = [];
+    let timerInterval = null;
+    let globalClock = null;
+    let timeLeftSec = 60;
+    let audioCtx = null;
+
+    function playTone(segments) {
+      if (volLevel === 0) return;
+      const vol = volLevel === 1 ? 0.25 : volLevel === 2 ? 0.6 : 1.0;
+      try {
+        const Ctx = window.AudioContext || window.webkitAudioContext;
+        if (!audioCtx) audioCtx = new Ctx();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        let t = audioCtx.currentTime;
+        segments.forEach(s => {
+          const osc = audioCtx.createOscillator();
+          const g = audioCtx.createGain();
+          const dur = (s.d || 100) / 1000;
+          osc.type = s.type || 'triangle';
+          osc.frequency.setValueAtTime(s.f || 440, t);
+          if (s.f2) osc.frequency.exponentialRampToValueAtTime(s.f2, t + dur);
+          g.gain.setValueAtTime(0.001, t);
+          g.gain.linearRampToValueAtTime((s.g || 0.8) * vol * 0.35, t + 0.01);
+          g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+          osc.connect(g);
+          g.connect(audioCtx.destination);
+          osc.start(t);
+          osc.stop(t + dur);
+          t += dur * 0.9;
+        });
+      } catch (e) {}
+    }
+
+    function vibrate(ms) {
+      try { if (navigator.vibrate) navigator.vibrate(ms); } catch (e) {}
+    }
+
+    // Build 3-4-3 Grid DOM
+    const gridEl = document.getElementById('bubbleGrid');
+    const bubbleEls = [];
+    ROWS.forEach(row => {
+      const rowEl = document.createElement('div');
+      rowEl.className = 'bubble-row';
+      row.forEach(idx => {
+        const ring = document.createElement('div');
+        ring.className = 'socket-ring';
+        const dome = document.createElement('div');
+        dome.className = 'bubble-dome';
+        dome.innerHTML = `<span class="note-tag">${NOTE_NAMES[idx]}</span>`;
+        dome.addEventListener('pointerdown', () => onPressBubble(idx));
+        ring.appendChild(dome);
+        rowEl.appendChild(ring);
+        bubbleEls[idx] = dome;
+      });
+      gridEl.appendChild(rowEl);
+    });
+
+    function render() {
+      const m = MODES[modeIdx];
+      document.getElementById('modeBadge').textContent = m.short;
+      document.getElementById('modeBadge').style.borderColor = m.color;
+      document.getElementById('modeBadge').style.color = m.color;
+
+      document.getElementById('levelReadout').textContent =
+        m.id === 'timeattack' ? `⏱ ${timeLeftSec}s` : `NVL ${String(level).padStart(2, '0')} (${subRound}/5)`;
+
+      document.getElementById('heartsReadout').textContent =
+        m.id === 'timeattack' ? `★ ${score}` : '♥'.repeat(Math.max(0, lives)) + '♡'.repeat(Math.max(0, 3 - lives));
+
+      document.getElementById('scoreReadout').textContent = `PTS: ${score} | RÉCORD: ${highScores[m.id]}`;
+
+      bubbleEls.forEach((el, idx) => {
+        el.className = 'bubble-dome' +
+          (poppedSet.has(idx) ? ' popped' : '') +
+          (litSet.has(idx) ? ' lit' : '') +
+          (errorSet.has(idx) ? ' error' : '');
+      });
+
+      const trigBtn = document.getElementById('btnTrigger');
+      const trigTitle = document.getElementById('triggerTitle');
+      const trigSub = document.getElementById('triggerSub');
+      trigBtn.className = 'back-trigger';
+
+      if (!isPowered) {
+        trigTitle.textContent = 'CONSOLA APAGADA';
+        trigSub.textContent = 'Pulsa ⏻ arriba para encender';
+      } else if (gameState === 'idle') {
+        trigBtn.classList.add('start-pulse');
+        trigTitle.textContent = '¡PULSA EL GATILLO PARA EMPEZAR!';
+        trigSub.textContent = 'Genera una secuencia 100% aleatoria';
+      } else if (gameState === 'gameover') {
+        trigBtn.classList.add('start-pulse');
+        trigTitle.textContent = '¡REINTENTAR PARTIDA!';
+        trigSub.textContent = 'Empuja las burbujas hacia arriba para jugar de nuevo';
+      } else if (gameState === 'awaiting_trigger') {
+        trigBtn.classList.add('ready-pulse');
+        trigTitle.textContent = '¡PULSA EL GATILLO AHORA! ⏫';
+        trigSub.textContent = '¡Todas explotadas! Empújalas para avanzar de ronda';
+      } else if (gameState === 'showing') {
+        trigTitle.textContent = 'OBSERVA LA SECUENCIA...';
+        trigSub.textContent = 'Presta atención al orden y sonido de las luces';
+      } else {
+        trigTitle.textContent = `GATILLO TRASERO (${poppedSet.size} Hundidas)`;
+        trigSub.textContent = 'Explota las burbujas y luego pulsa aquí para confirmar';
+      }
+    }
+
+    function clearTimers() {
+      timeouts.forEach(clearTimeout);
+      timeouts = [];
+      if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+    }
+
+    function startCountdown(ms, onExpire) {
+      if (timerInterval) clearInterval(timerInterval);
+      const start = Date.now();
+      const fill = document.getElementById('timerFill');
+      timerInterval = setInterval(() => {
+        const rem = Math.max(0, 1 - (Date.now() - start) / ms);
+        fill.style.width = (rem * 100) + '%';
+        fill.style.backgroundColor = rem < 0.28 ? '#ff3366' : rem < 0.55 ? '#ffbe0b' : MODES[modeIdx].color;
+        if (rem <= 0) {
+          clearInterval(timerInterval);
+          timerInterval = null;
+          onExpire();
+        }
+      }, 35);
+    }
+
+    function randomSequence(len) {
+      const arr = [];
+      let prev = -1;
+      for (let i = 0; i < len; i++) {
+        let n = Math.floor(Math.random() * 10);
+        if (n === prev) n = (n + 1 + Math.floor(Math.random() * 9)) % 10;
+        arr.push(n);
+        prev = n;
+      }
+      return arr;
+    }
+
+    function randomSubset(count) {
+      const pool = [0,1,2,3,4,5,6,7,8,9];
+      for (let i = pool.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [pool[i], pool[j]] = [pool[j], pool[i]];
+      }
+      return pool.slice(0, Math.max(1, Math.min(9, count)));
+    }
+
+    function startRound(lvl, sub) {
+      clearTimers();
+      litSet.clear();
+      poppedSet.clear();
+      errorSet.clear();
+      playerStep = 0;
+      const m = MODES[modeIdx];
+
+      if (m.id === 'memory') {
+        const seqLen = 2 + Math.floor((lvl - 1) * 0.85) + Math.floor((sub - 1) / 2);
+        const onMs = Math.max(165, 520 - (lvl - 1) * 28);
+        const gapMs = Math.max(85, 210 - (lvl - 1) * 12);
+        sequence = randomSequence(seqLen);
+        gameState = 'showing';
+        document.getElementById('statusText').textContent = `Observa la secuencia (${seqLen} pasos)...`;
+        document.getElementById('timerFill').style.width = '100%';
+        render();
+
+        sequence.forEach((bIdx, step) => {
+          const tOn = 350 + step * (onMs + gapMs);
+          timeouts.push(setTimeout(() => {
+            litSet.clear();
+            litSet.add(bIdx);
+            playTone([{ f: NOTES[bIdx], f2: NOTES[bIdx]*1.02, d: 165 }]);
+            render();
+          }, tOn));
+          timeouts.push(setTimeout(() => {
+            litSet.clear();
+            render();
+          }, tOn + onMs));
+        });
+
+        timeouts.push(setTimeout(() => {
+          gameState = 'playing';
+          document.getElementById('statusText').textContent = `¡Tu turno! Repite los ${seqLen} pasos en orden`;
+          render();
+          const allowMs = Math.max(2600, seqLen * Math.max(680, 1350 - (lvl - 1) * 55) + 1500);
+          startCountdown(allowMs, () => failRound([sequence[playerStep] ?? 0], '¡Tiempo agotado!'));
+        }, 380 + sequence.length * (onMs + gapMs)));
+      } else if (m.id === 'reflex') {
+        const minB = Math.min(5, 1 + Math.floor((lvl - 1) / 2));
+        const maxB = Math.min(8, 2 + Math.floor(lvl * 0.75) + Math.floor(sub / 2));
+        const count = minB + Math.floor(Math.random() * Math.max(1, maxB - minB + 1));
+        const limitMs = Math.max(950, Math.floor(4300 * Math.pow(0.9, lvl - 1) - (sub - 1) * 85));
+        activeTargets = randomSubset(count);
+        activeTargets.forEach(i => litSet.add(i));
+        gameState = 'playing';
+        document.getElementById('statusText').textContent = `¡Explota las ${count} burbujas y pulsa el gatillo!`;
+        playTone([{ f: NOTES[activeTargets[0]], d: 140 }]);
+        render();
+        startCountdown(limitMs, () => failRound(activeTargets, '¡Demasiado lento!'));
+      } else {
+        const count = Math.min(7, 2 + Math.floor(Math.random() * (2 + Math.floor(lvl / 2))));
+        activeTargets = randomSubset(count);
+        activeTargets.forEach(i => litSet.add(i));
+        gameState = 'playing';
+        document.getElementById('statusText').textContent = `¡Rápido! Explota las ${count} burbujas + Gatillo`;
+        playTone([{ f: NOTES[activeTargets[0]], d: 120 }]);
+        render();
+      }
+    }
+
+    function failRound(badIndices, msg) {
+      clearTimers();
+      vibrate([60, 40, 90]);
+      playTone([{ f: 300, f2: 200, d: 180, type: 'square' }, { f: 190, f2: 125, d: 300, type: 'square' }]);
+      litSet.clear();
+      errorSet = new Set(badIndices);
+      const m = MODES[modeIdx];
+      if (m.id === 'timeattack') {
+        gameState = 'awaiting_trigger';
+        document.getElementById('statusText').textContent = '¡Fallo! Pulsa el gatillo para otra ronda';
+        render();
+        return;
+      }
+      lives--;
+      if (lives <= 0) {
+        gameState = 'gameover';
+        document.getElementById('statusText').textContent = '¡FIN DEL JUEGO! Pulsa el gatillo para reiniciar';
+        render();
+      } else {
+        document.getElementById('statusText').textContent = `${msg} • Nueva secuencia...`;
+        render();
+        timeouts.push(setTimeout(() => startRound(level, subRound), 1300));
+      }
+    }
+
+    function onPressBubble(idx) {
+      if (!isPowered) return;
+      if (gameState === 'idle') {
+        vibrate(20);
+        playTone([{ f: NOTES[idx]*0.75, f2: NOTES[idx]*1.35, d: 65, type: 'sine' }, { f: NOTES[idx], d: 95 }]);
+        if (poppedSet.has(idx)) poppedSet.delete(idx); else poppedSet.add(idx);
+        litSet.add(idx);
+        render();
+        setTimeout(() => { litSet.delete(idx); render(); }, 180);
+        return;
+      }
+      if (gameState !== 'playing') return;
+
+      const m = MODES[modeIdx];
+      if (m.id === 'memory') {
+        const expected = sequence[playerStep];
+        if (idx === expected) {
+          vibrate(22);
+          playTone([{ f: NOTES[idx]*0.75, f2: NOTES[idx]*1.35, d: 65, type: 'sine' }, { f: NOTES[idx], d: 95 }]);
+          poppedSet.add(idx);
+          litSet.clear();
+          litSet.add(idx);
+          playerStep++;
+          if (playerStep < sequence.length) {
+            const nextExpected = sequence[playerStep];
+            setTimeout(() => {
+              litSet.clear();
+              poppedSet.delete(nextExpected);
+              render();
+            }, 140);
+            document.getElementById('statusText').textContent = `¡Bien! Paso ${playerStep}/${sequence.length} • Sigue...`;
+          } else {
+            setTimeout(() => { litSet.clear(); render(); }, 150);
+            gameState = 'awaiting_trigger';
+            document.getElementById('statusText').textContent = '¡Secuencia lista! ¡PULSA EL GATILLO TRASERO! ⏫';
+          }
+          render();
+        } else {
+          failRound([idx, expected], '¡Burbuja equivocada!');
+        }
+      } else {
+        if (!activeTargets.includes(idx)) {
+          failRound([idx], '¡Esa burbuja no estaba iluminada!');
+          return;
+        }
+        vibrate(22);
+        playTone([{ f: NOTES[idx]*0.75, f2: NOTES[idx]*1.35, d: 65, type: 'sine' }, { f: NOTES[idx], d: 95 }]);
+        activeTargets = activeTargets.filter(x => x !== idx);
+        poppedSet.add(idx);
+        litSet.delete(idx);
+        if (activeTargets.length === 0) {
+          gameState = 'awaiting_trigger';
+          document.getElementById('statusText').textContent = '¡Todas explotadas! ¡PULSA EL GATILLO TRASERO! ⏫';
+        }
+        render();
+      }
+    }
+
+    document.getElementById('btnTrigger').addEventListener('click', () => {
+      if (!isPowered || gameState === 'showing') return;
+      const m = MODES[modeIdx];
+      if (gameState === 'idle' || gameState === 'gameover') {
+        vibrate(45);
+        playTone([{ f: 240, f2: 580, d: 90 }, { f: 620, f2: 880, d: 85 }]);
+        clearTimers();
+        if (globalClock) clearInterval(globalClock);
+        score = 0;
+        lives = 3;
+        level = 1;
+        subRound = 1;
+        if (m.id === 'timeattack') {
+          timeLeftSec = 60;
+          const st = Date.now();
+          globalClock = setInterval(() => {
+            const rem = Math.max(0, 60 - (Date.now() - st) / 1000);
+            timeLeftSec = Math.ceil(rem);
+            document.getElementById('timerFill').style.width = ((rem / 60) * 100) + '%';
+            render();
+            if (rem <= 0) {
+              clearInterval(globalClock);
+              clearTimers();
+              gameState = 'gameover';
+              document.getElementById('statusText').textContent = '¡TIEMPO TERMINADO! Pulsa el gatillo para otra';
+              render();
+            }
+          }, 100);
+        }
+        startRound(1, 1);
+        return;
+      }
+      if (gameState === 'awaiting_trigger') {
+        clearTimers();
+        vibrate(45);
+        playTone([{ f: 240, f2: 580, d: 90 }, { f: 620, f2: 880, d: 85 }]);
+        poppedSet.clear();
+        errorSet.clear();
+        litSet.clear();
+        score += 10 * level;
+        highScores[m.id] = Math.max(highScores[m.id], score);
+        if (subRound < 5) {
+          subRound++;
+          startRound(level, subRound);
+        } else {
+          level++;
+          subRound = 1;
+          playTone([{ f: 523, d: 90 }, { f: 659, d: 90 }, { f: 784, d: 90 }, { f: 1046, d: 200 }]);
+          document.getElementById('statusText').textContent = `🎉 ¡NIVEL ${level} DESBLOQUEADO!`;
+          for (let i = 0; i < 10; i++) litSet.add(i);
+          render();
+          timeouts.push(setTimeout(() => startRound(level, 1), 900));
+        }
+        return;
+      }
+      if (gameState === 'playing') {
+        failRound(activeTargets, '¡Pulsaste el gatillo antes de terminar!');
+      }
+    });
+
+    document.getElementById('btnMode').addEventListener('click', () => {
+      if (!isPowered) return;
+      clearTimers();
+      if (globalClock) clearInterval(globalClock);
+      modeIdx = (modeIdx + 1) % MODES.length;
+      gameState = 'idle';
+      level = 1; subRound = 1; score = 0; lives = 3;
+      litSet.clear(); poppedSet.clear(); errorSet.clear();
+      playTone([{ f: 698, d: 70 }, { f: 880, d: 110 }]);
+      document.getElementById('statusText').textContent = MODES[modeIdx].desc;
+      document.getElementById('helperCaption').textContent = `💡 ${MODES[modeIdx].name}: ${MODES[modeIdx].desc}`;
+      render();
+    });
+
+    document.getElementById('btnPower').addEventListener('click', () => {
+      clearTimers();
+      if (globalClock) clearInterval(globalClock);
+      isPowered = !isPowered;
+      gameState = 'idle';
+      litSet.clear(); poppedSet.clear(); errorSet.clear();
+      document.getElementById('btnPower').classList.toggle('power-on', isPowered);
+      playTone(isPowered ? [{ f: 440, d: 80 }, { f: 659, d: 90 }, { f: 880, d: 160 }] : [{ f: 880, d: 80 }, { f: 440, d: 160 }]);
+      document.getElementById('statusText').textContent = isPowered ? '¡Pulsa el gatillo inferior para empezar!' : 'CONSOLA APAGADA';
+      render();
+    });
+
+    document.getElementById('btnVol').addEventListener('click', () => {
+      if (!isPowered) return;
+      volLevel = (volLevel + 1) % 4;
+      document.getElementById('volIcon').textContent = volLevel === 0 ? '🔇' : volLevel === 1 ? '🔈' : volLevel === 2 ? '🔉' : '🔊';
+      document.getElementById('volLabel').textContent = `VOL ${volLevel === 0 ? 'OFF' : volLevel}`;
+      if (volLevel > 0) playTone([{ f: 784, d: 80 }]);
+    });
+
+    render();
+
+    // Register Offline Service Worker so the installed app works without PC or Internet
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(() => {});
+    }
+  </script>
+</body>
+</html>
