@@ -8,12 +8,12 @@ import {
 } from 'react-native';
 import { GAME_MODES } from './ConsoleHeader';
 
-// Free Fire / Mobile Shooter ergonomic right-thumb arc offsets for the 4 spheres
+// Free Fire / Mobile Shooter ergonomic right-thumb arc offsets anchored near bottom-right corner
 const ACTION_BUTTON_LAYOUT = [
-  { id: 0, icon: '⊕', isPrimary: true, bottom: 26, right: 92 },   // Primary Fire
-  { id: 1, icon: '⌖', isPrimary: false, bottom: 118, right: 108 }, // Scope / Aim
-  { id: 2, icon: '⚡', isPrimary: false, bottom: 112, right: 24 },  // Jump / Dash
-  { id: 3, icon: '◈', isPrimary: false, bottom: 28, right: 16 },   // Crouch / Shield
+  { id: 0, icon: '⊕', isPrimary: true, bottom: 8, right: 74 },    // Primary Fire
+  { id: 1, icon: '⌖', isPrimary: false, bottom: 98, right: 90 },  // Scope / Aim
+  { id: 2, icon: '⚡', isPrimary: false, bottom: 92, right: 10 },  // Jump / Dash
+  { id: 3, icon: '◈', isPrimary: false, bottom: 10, right: 4 },   // Crouch / Shield
 ];
 
 export default function GamingLandscapeView({
@@ -337,16 +337,18 @@ const styles = StyleSheet.create({
     flex: 1,
     width: '100%',
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'stretch',
     justifyContent: 'space-between',
     backgroundColor: '#090c10',
-    paddingHorizontal: 18,
-    paddingVertical: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
   },
   leftZone: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: 'flex-start',
+    justifyContent: 'flex-end',
+    paddingLeft: 6,
+    paddingBottom: 4,
   },
   joystickOuterRing: {
     width: 164,
@@ -520,8 +522,10 @@ const styles = StyleSheet.create({
   },
   rightZone: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: 'flex-end',
+    justifyContent: 'flex-end',
+    paddingRight: 4,
+    paddingBottom: 2,
   },
   shooterCluster: {
     width: 200,
